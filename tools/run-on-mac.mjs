@@ -30,17 +30,21 @@ async function pageWsUrl() {
   } catch { return undefined; }
 }
 
-// Already open? Re-attach the ad blocker to that window and bring it forward,
-// instead of starting a second one.
+// Already open (maybe hidden on another desktop or behind other windows)?
+// Close that window and start a fresh one in front of you.
 let wsUrl = await pageWsUrl();
-const alreadyOpen = !!wsUrl;
-if (alreadyOpen) {
+if (wsUrl) {
   try {
-    const { execSync } = await import('node:child_process');
-    const pid = execSync(`pgrep -f "user-data-dir=${profile}" | head -1`).toString().trim();
-    if (pid) execSync(`osascript -e 'tell application "System Events" to set frontmost of (first process whose unix id is ${pid}) to true'`);
+    const v = await (await fetch(`http://127.0.0.1:${port}/json/version`)).json();
+    const b = new WebSocket(v.webSocketDebuggerUrl);
+    await new Promise(r => b.addEventListener('open', r));
+    b.send(JSON.stringify({ id: 1, method: 'Browser.close' }));
   } catch {}
-} else {
+  for (let i = 0; i < 50 && await pageWsUrl(); i++) await sleep(200);
+  await sleep(500);
+  wsUrl = undefined;
+}
+{
   const chrome = spawn(CHROME, [
     `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`,
     `--user-agent=${UA}`, '--autoplay-policy=no-user-gesture-required',
@@ -65,6 +69,4 @@ send('Page.addScriptToEvaluateOnNewDocument', { source: script });
 send('Page.navigate', { url: 'https://www.youtube.com/tv' });
 // The ad blocker lives as long as this launcher does: keep it running.
 ws.addEventListener('close', () => process.exit(0));
-console.log(alreadyOpen
-  ? 'AdFree TV was already open - re-attached the ad blocker and brought it to the front.'
-  : 'AdFree TV is running in the Chrome window. Keep this terminal open; quit with Cmd+Q in the window.');
+console.log('AdFree TV is open. Keep this terminal open; quit with Cmd+Q in the window.');
