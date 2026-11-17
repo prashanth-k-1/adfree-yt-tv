@@ -69,6 +69,10 @@ final class Updater {
     static void checkInBackground(Activity a) {
         Context app = a.getApplicationContext();
         SharedPreferences p = prefs(app);
+        // New app version installed: check for updates right away.
+        if (p.getInt("appVersion", 0) != BuildConfig.VERSION_CODE) {
+            p.edit().putInt("appVersion", BuildConfig.VERSION_CODE).putLong("lastCheck", 0).apply();
+        }
         if (System.currentTimeMillis() - p.getLong("lastCheck", 0) < CHECK_EVERY_MS) {
             offerPendingApk(a);
             return;

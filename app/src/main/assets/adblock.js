@@ -522,21 +522,41 @@
   }
 
   // ===========================================================================
-  // Always guest: skip YouTube's "Get started / Sign in" screen automatically.
+  // Guest by default: skip YouTube's "Who's watching?" screen by choosing
+  // "Watch as guest" - but only while no Google account has been added. Once you
+  // sign in (for example through YouTube's "confirm you're not a bot" screen),
+  // the app stops choosing guest and keeps your account.
   // ===========================================================================
+  var SIGNED_IN_KEY = 'adfree.signedIn';
+  function signedIn() {
+    try {
+      if (localStorage.getItem(SIGNED_IN_KEY) === '1') return true;
+      var cfg = window.ytcfg && window.ytcfg.get && window.ytcfg.get('LOGGED_IN');
+      if (cfg === true) { localStorage.setItem(SIGNED_IN_KEY, '1'); return true; }
+    } catch (e) {}
+    return false;
+  }
   var guestTries = 0;
   var guestTimer = setInterval(function () {
-    if (++guestTries > 120) { clearInterval(guestTimer); return; } // give up after ~60s
+    if (++guestTries > 120 || signedIn()) { clearInterval(guestTimer); return; } // ~60s max
     var items = document.querySelectorAll('[role="menuitem"]');
+    var guest = null, account = false;
     for (var i = 0; i < items.length; i++) {
       var t = (items[i].innerText || items[i].textContent || '').trim();
-      if (/^watch as guest$/i.test(t) || /guest/i.test(t)) {
-        var target = items[i].closest('ytlr-button, ytlr-button-renderer, [tabindex]') || items[i];
-        target.click();
-        log('chose "Watch as guest" automatically');
-        clearInterval(guestTimer);
-        return;
-      }
+      if (/guest/i.test(t)) guest = items[i];
+      else if (t && !/sign in|add account|another account|get started|settings|search/i.test(t)) account = true;
+    }
+    if (account) {
+      // A Google account is on this TV: let it be used instead of guest.
+      log('account found - not choosing guest');
+      clearInterval(guestTimer);
+      return;
+    }
+    if (guest) {
+      var target = guest.closest('ytlr-button, ytlr-button-renderer, [tabindex]') || guest;
+      target.click();
+      log('chose "Watch as guest" automatically');
+      clearInterval(guestTimer);
     }
   }, 500);
 
