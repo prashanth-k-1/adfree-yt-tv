@@ -39,7 +39,7 @@ echo "Signed: script v$SV, app v$APKV"
 cat update/manifest.json
 
 if git rev-parse --git-dir >/dev/null 2>&1 && git remote get-url origin >/dev/null 2>&1; then
-  git add update/ && git commit -qm "Publish update: script v$SV, app v$APKV" && git push -q && echo "Pushed. TVs will pick it up within 6 hours."
+  git add update/ && git commit -qm "Publish update: script v$SV, app v$APKV" -m "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>" && git push -q && echo "Pushed. TVs will pick it up within 6 hours."
 else
   echo "No GitHub remote yet - update/ prepared locally only."
 fi
