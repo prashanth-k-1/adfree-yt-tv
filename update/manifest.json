@@ -1,6 +1,6 @@
 {
-  "scriptVersion": 2,
-  "scriptSha256": "87aeb1fc7a3e78eb3f63ef05b353b5a6582f90121ed386702104b02cb3ee52b3",
+  "scriptVersion": 3,
+  "scriptSha256": "aad59451d37d4077f80a2ae29269f74aaa62d9761cdab6aa297eac9df279ce23",
   "apkVersionCode": 0,
   "apkSha256": "",
   "userAgent": "Mozilla/5.0 (PS4; Leanback Shell) Gecko/20100101 Firefox/65.0 LeanbackShell/01.00.01.75 Sony PS4/ (PS4, , no, CH)"
